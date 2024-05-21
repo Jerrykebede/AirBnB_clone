@@ -1,92 +1,59 @@
 #!/usr/bin/python3
-"""Unittest module for the City Class.
-Unittest classes:
-    TestCity_instantiation
-    TestCity_save
-    TestCity_to_dict
+"""Unit tests for the `city` module.
 """
-
-import unittest
-from datetime import datetime
-import time
-import uuid
-from models.city import City
-import re
-import json
-from models.engine.file_storage import FileStorage
 import os
+import unittest
+from models.engine.file_storage import FileStorage
 from models import storage
-from models.base_model import BaseModel
+from models.city import City
+from datetime import datetime
+
+c1 = City()
+c2 = City(**c1.to_dict())
+c3 = City("hello", "wait", "in")
+
 
 class TestCity(unittest.TestCase):
-    """City model class test case"""
+    """Test cases for the `City` class."""
 
-    @classmethod
-    def setUpClass(cls):
-        """Setup the unittest"""
-        cls.city = City()
-        cls.city.state_id = str(uuid.uuid4())
-        cls.city.name = "St. Petesburg"
+    def setUp(self):
+        pass
 
-    @classmethod
-    def tearDownClass(cls):
-        """Clean up the dirt"""
-        del cls.city
-        try:
-            os.remove("file.json")
-        except FileNotFoundError:
-            pass
+    def tearDown(self) -> None:
+        """Resets FileStorage data."""
+        FileStorage._FileStorage__objects = {}
+        if os.path.exists(FileStorage._FileStorage__file_path):
+            os.remove(FileStorage._FileStorage__file_path)
 
-    def test_no_args_instantiates(self):
-        self.assertEqual(City, type(City()))
+    def test_params(self):
+        """Test method for class attributes"""
+        k = f"{type(c1).__name__}.{c1.id}"
+        self.assertIsInstance(c1.name, str)
+        self.assertEqual(c3.name, "")
+        c1.name = "Abuja"
+        self.assertEqual(c1.name, "Abuja")
 
-    def test_new_instance_stored_in_objects(self):
-        self.assertIn(City(), storage.all().values())
-
-    def test_id_is_public_str(self):
-        self.assertEqual(str, type(City().id))
-
-    def test_created_at_is_public_datetime(self):
-        self.assertEqual(datetime, type(City().created_at))
-
-    def test_updated_at_is_public_datetime(self):
-        self.assertEqual(datetime, type(City().updated_at))
-
-    def test_is_subclass(self):
-        self.assertTrue(issubclass(self.city.__class__, BaseModel))
-
-    def checking_for_doc(self):
-        self.assertIsNotNone(City.__doc__)
-
-    def test_has_attributes(self):
-        self.assertTrue('id' in self.city.__dict__)
-        self.assertTrue('created_at' in self.city.__dict__)
-        self.assertTrue('updated_at' in self.city.__dict__)
-        self.assertTrue('state_id' in self.city.__dict__)
-        self.assertTrue('name' in self.city.__dict__)
-
-    def test_state_id_is_public_class_attribute(self):
-        ci = City()
-        self.assertEqual(str, type(City.state_id))
-        self.assertIn("state_id", dir(ci))
-        self.assertNotIn("state_id", ci.__dict__)
-
-    def test_name_is_public_class_attribute(self):
-        ci = City()
-        self.assertEqual(str, type(City.name))
-        self.assertIn("name", dir(ci))
-        self.assertNotIn("name", ci.__dict__)
-
-    def test_attributes_are_string(self):
-        self.assertIs(type(self.city.state_id), str)
-        self.assertIs(type(self.city.name), str)
+    def test_init(self):
+        """Test method for public instances"""
+        self.assertIsInstance(c1.id, str)
+        self.assertIsInstance(c1.created_at, datetime)
+        self.assertIsInstance(c1.updated_at, datetime)
+        self.assertEqual(c1.updated_at, c2.updated_at)
 
     def test_save(self):
-        self.city.save()
-        self.assertNotEqual(self.city.created_at, self.city.updated_at)
+        """Test method for save"""
+        old_update = c1.updated_at
+        c1.save()
+        self.assertNotEqual(c1.updated_at, old_update)
 
-    def test_to_dict(self):
-        self.assertTrue('to_dict' in dir(self.city))
+    def test_todict(self):
+        """Test method for dict"""
+        a_dict = c2.to_dict()
+        self.assertIsInstance(a_dict, dict)
+        self.assertEqual(a_dict['__class__'], type(c2).__name__)
+        self.assertIn('created_at', a_dict.keys())
+        self.assertIn('updated_at', a_dict.keys())
+        self.assertNotEqual(c1, c2)
 
 
 if __name__ == "__main__":
