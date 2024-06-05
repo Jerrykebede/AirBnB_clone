@@ -1,11 +1,14 @@
 #!/usr/bin/python3
-""" shebang line - defines where the interpreter is located """
+"""
+Module for the User class.
+"""
 from models.base_model import BaseModel
-""" import moduls """
 
 
 class User(BaseModel):
-    """ Main class to manage Users, it inherited of BaseModel """
+    """
+    class User that handles users' information
+    """
     email = ""
     password = ""
     first_name = ""

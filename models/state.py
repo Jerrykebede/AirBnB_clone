@@ -1,9 +1,16 @@
 #!/usr/bin/python3
-""" shebang line - defines where the interpreter is located """
+"""
+Module for the State class.
+"""
 from models.base_model import BaseModel
-""" import moduls """
 
 
 class State(BaseModel):
-    """ Main class to manage States, it inherited of BaseModel """
+    """
+    Represent a state.
+
+    Attributes:
+        name (str): The name of the state.
+    """
+
     name = ""

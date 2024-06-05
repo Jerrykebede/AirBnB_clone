@@ -1,11 +1,19 @@
 #!/usr/bin/python3
-""" shebang line - defines where the interpreter is located """
+"""
+Module for the Review class.
+"""
 from models.base_model import BaseModel
-""" import moduls """
 
 
 class Review(BaseModel):
-    """ Main class to manage Reviews, it inherited of BaseModel """
+    """Represent a review.
+
+    Attributes:
+        place_id (str): The Place id.
+        user_id (str): The User id.
+        text (str): The text of the review.
+    """
+
     place_id = ""
     user_id = ""
     text = ""
