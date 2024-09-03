@@ -16,6 +16,7 @@ from models.state import State
 from models.city import City
 
 
+
 def split_curly_braces(e_arg):
     """
     Splits the curly braces for the update method
@@ -50,7 +51,6 @@ def split_curly_braces(e_arg):
                 return id, attr_name
             return f"{id}", f"{attr_name} {attr_value}"
 
-
 class HBNBCommand(cmd.Cmd):
     """
     HBNBCommand console class
@@ -76,22 +76,48 @@ class HBNBCommand(cmd.Cmd):
         Quit command to exit the program.
         """
         return True
+        
 
     def do_create(self, arg):
         """
         Create a new instance of BaseModel and save it to the JSON file.
         Usage: create <class_name>
         """
-        commands = shlex.split(arg)
+        try:
+            class_name = arg.split(" ")[0]
+            if len(class_name) == 0:
+                print("** class name missing **")
+                return
+            if class_name and class_name not in self.valid_classes:
+                print("** class doesn't exist **")
+                return
 
-        if len(commands) == 0:
-            print("** class name missing **")
-        elif commands[0] not in self.valid_classes:
-            print("** class doesn't exist **")
-        else:
-            new_instance = eval(f"{commands[0]}()")
-            storage.save()
+            kwargs = {}
+            commands = arg.split(" ")
+            for i in range(1, len(commands)):
+                
+                key = commands[i].split("=")[0]
+                value = commands[i].split("=")[1]
+                #key, value = tuple(commands[i].split("="))
+                if value.startswith('"'):
+                    value = value.strip('"').replace("_", " ")
+                else:
+                    try:
+                        value = eval(value)
+                    except (SyntaxError, NameError):
+                        continue
+                kwargs[key] = value
+
+            if kwargs == {}:
+                new_instance = eval(class_name)()
+            else:
+                new_instance = eval(class_name)(**kwargs)
+            storage.new(new_instance)
             print(new_instance.id)
+            storage.save()
+        except ValueError:
+            print(ValueError)
+            return
 
     def do_show(self, arg):
         """
@@ -156,7 +182,7 @@ class HBNBCommand(cmd.Cmd):
             for key, value in objects.items():
                 if key.split('.')[0] == commands[0]:
                     print(str(value))
-
+        
     def do_count(self, arg):
         """
         Counts and retrieves the number of instances of a class
@@ -167,14 +193,13 @@ class HBNBCommand(cmd.Cmd):
         commands = shlex.split(arg)
 
         if arg:
-            cls_nm = commands[0]
-
+            incoming_class_name = commands[0]
         count = 0
 
         if commands:
-            if cls_nm in self.valid_classes:
+            if incoming_class_name in self.valid_classes:
                 for obj in objects.values():
-                    if obj.__class__.__name__ == cls_nm:
+                    if obj.__class__.__name__ == incoming_class_name:
                         count += 1
                 print(count)
             else:
@@ -210,6 +235,7 @@ class HBNBCommand(cmd.Cmd):
                 curly_braces = re.search(r"\{(.*?)\}", arg)
 
                 if curly_braces:
+                    # added to catch errors
                     try:
                         str_data = curly_braces.group(1)
 
@@ -217,6 +243,7 @@ class HBNBCommand(cmd.Cmd):
 
                         attribute_names = list(arg_dict.keys())
                         attribute_values = list(arg_dict.values())
+                        # added to catch exception
                         try:
                             attr_name1 = attribute_names[0]
                             attr_value1 = attribute_values[0]
@@ -224,6 +251,7 @@ class HBNBCommand(cmd.Cmd):
                         except Exception:
                             pass
                         try:
+                            # added to catch exception
                             attr_name2 = attribute_names[1]
                             attr_value2 = attribute_values[1]
                             setattr(obj, attr_name2, attr_value2)
@@ -243,7 +271,7 @@ class HBNBCommand(cmd.Cmd):
                     setattr(obj, attr_name, attr_value)
 
                 obj.save()
-
+    
     def default(self, arg):
         """
         Default behavior for cmd module when input is invalid
@@ -285,7 +313,7 @@ class HBNBCommand(cmd.Cmd):
         else:
             print("*** Unknown syntax: {}".format(arg))
             return False
-
+    
 
 if __name__ == '__main__':
     HBNBCommand().cmdloop()
